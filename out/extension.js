@@ -83,8 +83,10 @@ function renderMarkdownWithCheckboxes(markdown) {
     const processedLines = [];
     let inTable = false;
     let isTableHeader = false;
+    console.log('Processing markdown lines:', lines.length);
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+        console.log(`Line ${i}: "${line}" | inTable: ${inTable} | isTableHeader: ${isTableHeader}`);
         const uncheckedMatch = line.match(/^(\s*)-\s\[\s\]\s(.*)$/);
         const checkedMatch = line.match(/^(\s*)-\s\[x\]\s(.*)$/);
         if (uncheckedMatch) {
@@ -102,23 +104,25 @@ function renderMarkdownWithCheckboxes(markdown) {
             let processedLine = line;
             // Table detection
             if (line.includes('|') && line.trim().length > 0) {
-                if (!inTable) {
+                console.log(`Table line detected: "${line}"`);
+                const isSeparatorRow = line.match(/^\s*\|?[\s\-:]+\|[\s\-:]*\|?\s*$/);
+                console.log(`Is separator row: ${!!isSeparatorRow}`);
+                if (!inTable && !isSeparatorRow) {
+                    console.log('Starting new table');
                     inTable = true;
                     isTableHeader = true;
-                    processedLine = '<table><thead><tr>' + processTableRow(line, i, true) + '</tr></thead><tbody>';
+                    processedLine = '<table><thead><tr>' + processTableRow(line, i, true) + '</tr>';
                 }
-                else if (line.match(/^\|?[\s\-:]+\|/)) {
-                    // Skip separator row
-                    continue;
+                else if (isSeparatorRow) {
+                    // Separator row - close header and start body
+                    console.log('Separator row detected');
+                    processedLine = '</thead><tbody>';
+                    isTableHeader = false;
                 }
-                else {
-                    if (isTableHeader) {
-                        processedLine = '<tr>' + processTableRow(line, i, false) + '</tr>';
-                        isTableHeader = false;
-                    }
-                    else {
-                        processedLine = '<tr>' + processTableRow(line, i, false) + '</tr>';
-                    }
+                else if (inTable) {
+                    // Regular table row
+                    console.log('Regular table row');
+                    processedLine = '<tr>' + processTableRow(line, i, false) + '</tr>';
                 }
             }
             else {
@@ -161,7 +165,21 @@ function renderMarkdownWithCheckboxes(markdown) {
     return processedLines.join('\n');
 }
 function processTableRow(line, lineNumber, isHeader) {
-    const cells = line.split('|').slice(1, -1);
+    let cells;
+    // Handle lines with or without leading/trailing pipes
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) {
+        cells = trimmedLine.split('|').slice(1, -1);
+    }
+    else if (trimmedLine.startsWith('|')) {
+        cells = trimmedLine.split('|').slice(1);
+    }
+    else if (trimmedLine.endsWith('|')) {
+        cells = trimmedLine.split('|').slice(0, -1);
+    }
+    else {
+        cells = trimmedLine.split('|');
+    }
     const tag = isHeader ? 'th' : 'td';
     return cells.map((cell, index) => {
         const content = cell.trim();
@@ -177,7 +195,9 @@ function processTableRow(line, lineNumber, isHeader) {
             return `<${tag}><input type="checkbox" data-line="${lineNumber}" data-cell="${index}" checked onclick="toggleTableCheckbox(${lineNumber}, ${index}, this.checked)"> ${text}</${tag}>`;
         }
         else {
-            return `<${tag}>${content}</${tag}>`;
+            // Process inline code within table cells
+            const processedContent = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+            return `<${tag}>${processedContent}</${tag}>`;
         }
     }).join('');
 }
