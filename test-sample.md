@@ -39,6 +39,16 @@ function hello() {
 | Cell 1   | Cell 2   | Cell 3   |
 | Cell 4   | Cell 5   | Cell 6   |
 
+s
+
+## Table with Checkboxes
+
+| Task            | Status          | Priority |
+| --------------- | --------------- | -------- |
+| [ ] Design UI   | [ ] In Progress | High     |
+| [x] Write Tests | [x] Completed   | Medium   |
+| [ ] Code Review | [ ] Pending     | Low      |
+
 ## More Tasks
 
 - [ ] Task A
