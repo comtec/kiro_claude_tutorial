@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "ESLint & Prettier on Save",
+  "description": "Automatically runs ESLint and Prettier when JavaScript/TypeScript files are saved to ensure code quality and consistent formatting",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.vue",
+      "**/*.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A file has been saved. Please run ESLint to check for code quality issues and then run Prettier to format the code. Focus on the recently saved file and fix any linting errors or warnings. Ensure the code follows proper formatting standards."
+  }
+}
