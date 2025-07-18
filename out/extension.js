@@ -101,13 +101,13 @@ function renderMarkdownWithCheckboxes(markdown) {
             // Basic markdown rendering for other elements
             let processedLine = line;
             // Table detection
-            if (line.includes('|')) {
+            if (line.includes('|') && line.trim().length > 0) {
                 if (!inTable) {
                     inTable = true;
                     isTableHeader = true;
                     processedLine = '<table><thead><tr>' + processTableRow(line, i, true) + '</tr></thead><tbody>';
                 }
-                else if (line.match(/^\|[\s\-:]+\|/)) {
+                else if (line.match(/^\|?[\s\-:]+\|/)) {
                     // Skip separator row
                     continue;
                 }
@@ -123,7 +123,7 @@ function renderMarkdownWithCheckboxes(markdown) {
             }
             else {
                 if (inTable) {
-                    processedLine = '</tbody></table>' + processedLine;
+                    processedLines.push('</tbody></table>');
                     inTable = false;
                 }
                 // Headers
@@ -146,6 +146,10 @@ function renderMarkdownWithCheckboxes(markdown) {
                 processedLine = processedLine.replace(/^> (.*)$/, '<blockquote>$1</blockquote>');
                 // Regular list items
                 processedLine = processedLine.replace(/^(\s*)- (.*)$/, '$1<li>$2</li>');
+                // Empty lines
+                if (line.trim() === '') {
+                    processedLine = '';
+                }
             }
             processedLines.push(processedLine);
         }
@@ -154,7 +158,7 @@ function renderMarkdownWithCheckboxes(markdown) {
     if (inTable) {
         processedLines.push('</tbody></table>');
     }
-    return processedLines.join('<br>\n');
+    return processedLines.join('\n');
 }
 function processTableRow(line, lineNumber, isHeader) {
     const cells = line.split('|').slice(1, -1);
